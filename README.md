@@ -206,10 +206,7 @@ Press any key to exit...
    - Verify your Personal Access Token is correct
    - Ensure the token has appropriate scopes
    - Check if the token has expired
-      ActionFine-Grained PAT Permission NeededList branchesContents → Read| Delete branches                  | Contents → Write                       |
-| Check branch protection          | Administration → Read                  |
-| Modify branch protection rules   | Administration → Write                 |
-| View active pull requests        | Pull Requests → Read                   |
+      
 2. **Repository Not Found**
    - Verify the Owner and Repository names are correct
    - Ensure you have access to the repository
