@@ -6,7 +6,7 @@ namespace GitStaleBranchCleanup.Services
 {
     public interface IBranchCleanupService
     {
-        Task<List<BranchInfo>> AnalyzeBranchesAsync();
+        Task<(List<BranchInfo> Branches, string ReportPath)> AnalyzeBranchesAsync();
         Task<bool> DeleteStaleBranchesAsync(List<BranchInfo> staleBranches);
     }
 
@@ -26,7 +26,7 @@ namespace GitStaleBranchCleanup.Services
             _config = config;
         }
 
-        public async Task<List<BranchInfo>> AnalyzeBranchesAsync()
+        public async Task<(List<BranchInfo> Branches, string ReportPath)> AnalyzeBranchesAsync()
         {
             try
             {
@@ -66,9 +66,14 @@ namespace GitStaleBranchCleanup.Services
                 }
 
                 // Generate Excel report
-                await _excelService.GenerateReportAsync(allBranches, _config.OutputExcelFile);
+                var timestamp = DateTime.Now.ToString("MMddyyyyHHmm");
+                var outputFileName = Path.GetFileNameWithoutExtension(_config.OutputExcelFile) 
+                                   + "-" + timestamp 
+                                   + Path.GetExtension(_config.OutputExcelFile);
 
-                return allBranches;
+                await _excelService.GenerateReportAsync(allBranches, outputFileName);
+
+                return (allBranches, outputFileName);
             }
             catch (Exception ex)
             {
