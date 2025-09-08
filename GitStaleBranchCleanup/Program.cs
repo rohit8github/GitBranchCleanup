@@ -36,7 +36,7 @@ namespace GitStaleBranchCleanup
                     settings.CleanupConfig);
 
                 // Analyze branches
-                var branches = await branchCleanupService.AnalyzeBranchesAsync();
+                var (branches, reportPath) = await branchCleanupService.AnalyzeBranchesAsync();
 
                 var staleBranches = branches.Where(b => b.IsStale).ToList();
                 
@@ -46,7 +46,7 @@ namespace GitStaleBranchCleanup
                     return;
                 }
 
-                Console.WriteLine($"\nAnalysis complete. Check '{settings.CleanupConfig.OutputExcelFile}' for detailed report.");
+                Console.WriteLine($"\nAnalysis complete. Check '{reportPath}' for detailed report.");
                 
                 // Ask user if they want to proceed with deletion
                 Console.Write("\nDo you want to proceed with branch deletion? (y/N): ");

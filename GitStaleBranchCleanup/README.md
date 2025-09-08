@@ -77,6 +77,16 @@ Before running the application, you need to configure the `appsettings.json` fil
   - Exact matches (e.g., `main` matches only the "main" branch)
 - **OutputExcelFile**: Name of the Excel report file to generate
 
+#### GitHub PAT Permissions Reference
+
+| Action                        | Fine-Grained PAT Permission Needed |
+|-------------------------------|------------------------------------|
+| List branches                 | `Contents` → `Read`                |
+| Delete branches               | `Contents` → `Write`               |
+| Check branch protection       | `Administration` → `Read`          |
+| View active pull requests     | `Pull Requests` → `Read`           |
+
+
 ## Usage
 
 1. **Configure the application** by editing `appsettings.json` with your repository details and preferences.
