@@ -92,7 +92,7 @@ if [ -z "$BASH_BIN" ]; then
   exit 1
 fi
 
-SCAN_MODE="${SCAN_MODE:-warn}" \
+SCAN_MODE="${SCAN_MODE:-block}" \
 SCAN_SCOPE="${SCAN_SCOPE:-staged}" \
 SECRETS_LOG_DIR="${SECRETS_LOG_DIR:-logs/secrets}" \
   "$BASH_BIN" "$SCANNER"
