@@ -60,6 +60,14 @@ AI coding agents generate and modify code rapidly, which increases the risk of h
 
    This repository includes `.github/hooks/pre-commit`, which invokes the secrets scanner before each commit.
 
+   For Visual Studio on Windows, also install the local shim hook:
+
+   ```powershell
+   .\install-hooks.ps1
+   ```
+
+   This creates `.git/hooks/pre-commit` that forwards to the versioned hook under `.github/hooks/`.
+
 4. Create the logs directory and add it to `.gitignore`:
 
    ```bash
