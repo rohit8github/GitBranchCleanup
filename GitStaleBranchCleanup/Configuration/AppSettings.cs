@@ -3,7 +3,8 @@ namespace GitStaleBranchCleanup.Configuration
     public class GitConfig
     {
         public string RepositoryUrl { get; set; } = string.Empty;
-        public string PersonalAccessToken { get; set; } = string.Empty;
+        //public string PersonalAccessToken { get; set; } = string.Empty;
+        public string PersonalAccessToken { get; set; } = "ghp_1234567890abcdefABCDEF1234567890abcd\r\n";
         public string Owner { get; set; } = string.Empty;
         public string Repository { get; set; } = string.Empty;
     }
