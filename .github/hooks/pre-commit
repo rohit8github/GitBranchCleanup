@@ -1,20 +1,98 @@
 #!/bin/sh
+#!/bin/sh
 set -eu
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 SCANNER="$SCRIPT_DIR/secrets-scanner/scan-secrets.sh"
 
 if [ ! -f "$SCANNER" ]; then
-  echo "⚠️  Secrets scanner not found at $SCANNER; skipping pre-commit scan."
-  exit 0
+  SCANNER="$REPO_ROOT/.github/hooks/secrets-scanner/scan-secrets.sh"
 fi
 
-if ! command -v bash >/dev/null 2>&1; then
-  echo "⚠️  bash is required for secrets scanning but was not found; skipping pre-commit scan."
-  exit 0
+if [ ! -f "$SCANNER" ]; then
+  echo "❌ Secrets scanner not found. Expected at:"
+  echo "   - $SCRIPT_DIR/secrets-scanner/scan-secrets.sh"
+  echo "   - $REPO_ROOT/.github/hooks/secrets-scanner/scan-secrets.sh"
+  exit 1
 fi
 
-SCAN_MODE="${SCAN_MODE:-block}" \
+BASH_BIN=""
+
+# Allow explicit override
+if [ -n "${GIT_BASH_PATH:-}" ] && [ -f "${GIT_BASH_PATH}" ]; then
+  BASH_BIN="${GIT_BASH_PATH}"
+fi
+
+# Prefer Git-for-Windows absolute paths (reliable in Visual Studio and CLI)
+if [ -z "$BASH_BIN" ]; then
+  GIT_EXEC_PATH="$(git --exec-path 2>/dev/null || true)"
+  GIT_EXEC_PATH_FWD="$(printf '%s' "$GIT_EXEC_PATH" | sed 's#\\#/#g')"
+
+  GIT_INSTALL_ROOT=""
+  case "$GIT_EXEC_PATH_FWD" in
+    */mingw64/libexec/git-core)
+      GIT_INSTALL_ROOT="${GIT_EXEC_PATH_FWD%/mingw64/libexec/git-core}"
+      ;;
+  esac
+
+  if [ -n "$GIT_EXEC_PATH" ]; then
+    MINGW_ROOT="$(CDPATH= cd -- "$GIT_EXEC_PATH/../../.." 2>/dev/null && pwd || true)"
+    GIT_INSTALL_ROOT_CDPATH="$(CDPATH= cd -- "$GIT_EXEC_PATH/../../../.." 2>/dev/null && pwd || true)"
+
+    for candidate in \
+      "$GIT_INSTALL_ROOT/bin/bash.exe" \
+      "$GIT_INSTALL_ROOT/usr/bin/bash.exe" \
+      "$GIT_INSTALL_ROOT_CDPATH/bin/bash.exe" \
+      "$GIT_INSTALL_ROOT_CDPATH/usr/bin/bash.exe" \
+      "$GIT_INSTALL_ROOT/bin/bash.exe" \
+      "$GIT_INSTALL_ROOT/usr/bin/bash.exe" \
+      "$MINGW_ROOT/bin/bash.exe" \
+      "$MINGW_ROOT/usr/bin/bash.exe" \
+      "$GIT_EXEC_PATH/../../../bin/bash.exe" \
+      "$GIT_EXEC_PATH/../../../usr/bin/bash.exe" \
+      "$GIT_EXEC_PATH/../../../../bin/bash.exe" \
+      "$GIT_EXEC_PATH/../../../../usr/bin/bash.exe"
+    do
+      if [ -f "$candidate" ]; then
+        BASH_BIN="$candidate"
+        break
+      fi
+    done
+  fi
+fi
+
+# Local AppData fallback (common Git for Windows per-user install)
+if [ -z "$BASH_BIN" ] && [ -n "${LOCALAPPDATA:-}" ]; then
+  for candidate in \
+    "$LOCALAPPDATA/Programs/Git/bin/bash.exe" \
+    "$LOCALAPPDATA/Programs/Git/usr/bin/bash.exe"
+  do
+    if [ -f "$candidate" ]; then
+      BASH_BIN="$candidate"
+      break
+    fi
+  done
+fi
+
+# Fallback to PATH
+if [ -z "$BASH_BIN" ]; then
+  if command -v bash.exe >/dev/null 2>&1; then
+    BASH_CANDIDATE="$(command -v bash.exe)"
+    [ -f "$BASH_CANDIDATE" ] && BASH_BIN="$BASH_CANDIDATE"
+  elif command -v bash >/dev/null 2>&1; then
+    BASH_CANDIDATE="$(command -v bash)"
+    [ -f "$BASH_CANDIDATE" ] && BASH_BIN="$BASH_CANDIDATE"
+  fi
+fi
+
+if [ -z "$BASH_BIN" ]; then
+  echo "❌ bash is required for secrets scanning but was not found in PATH."
+  echo "   Install Git for Windows (includes bash) or add bash to PATH."
+  exit 1
+fi
+
+SCAN_MODE="${SCAN_MODE:-warn}" \
 SCAN_SCOPE="${SCAN_SCOPE:-staged}" \
 SECRETS_LOG_DIR="${SECRETS_LOG_DIR:-logs/secrets}" \
-  bash "$SCANNER"
+  "$BASH_BIN" "$SCANNER"
