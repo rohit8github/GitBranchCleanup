@@ -4,7 +4,7 @@ namespace GitStaleBranchCleanup.Configuration
     {
         public string RepositoryUrl { get; set; } = string.Empty;
         //public string PersonalAccessToken { get; set; } = string.Emgit pty;
-        public string PersonalAccessToken { get; set; } = "gho_1234567890abcdefABCDEF1234567890abcd";
+        public string PersonalAccessToken { get; set; } = "ghos_1234567890abcdefABCDEF1234567890abcd";
         public string Owner { get; set; } = string.Empty;
         public string Repository { get; set; } = string.Empty;
     }
