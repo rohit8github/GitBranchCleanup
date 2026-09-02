@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+SCANNER="$SCRIPT_DIR/secrets-scanner/scan-secrets.sh"
+
+if [ ! -f "$SCANNER" ]; then
+  echo "⚠️  Secrets scanner not found at $SCANNER; skipping pre-commit scan."
+  exit 0
+fi
+
+if ! command -v bash >/dev/null 2>&1; then
+  echo "⚠️  bash is required for secrets scanning but was not found; skipping pre-commit scan."
+  exit 0
+fi
+
+SCAN_MODE="${SCAN_MODE:-block}" \
+SCAN_SCOPE="${SCAN_SCOPE:-staged}" \
+SECRETS_LOG_DIR="${SECRETS_LOG_DIR:-logs/secrets}" \
+  bash "$SCANNER"
